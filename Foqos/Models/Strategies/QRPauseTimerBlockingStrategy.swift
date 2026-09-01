@@ -88,6 +88,8 @@ class QRPauseTimerBlockingStrategy: BlockingStrategy {
   ) -> (any View)? {
     let isPauseActive = session.isPauseActive
     let heading = isPauseActive ? "Scan to stop" : "Scan to pause"
+    let unblockPurpose: PhysicalUnblockItem.PhysicalUnblockPurpose =
+      isPauseActive ? .stop : .pause
     let subtitle =
       isPauseActive
       ? "Point your camera at a QR code to fully stop this profile."
@@ -102,16 +104,21 @@ class QRPauseTimerBlockingStrategy: BlockingStrategy {
         let tag = result.string
 
         // Check strict mode - if physical unblock is set, it must match
-        if session.blockedProfile.hasPhysicalUnblockItem(ofType: .qrCode)
-          && !session.blockedProfile.canUnblock(withCode: tag, type: .qrCode)
+        if session.blockedProfile.hasPhysicalUnblockItem(ofType: .qrCode, purpose: unblockPurpose)
+          && !session.blockedProfile.canUnblock(withCode: tag, type: .qrCode, purpose: unblockPurpose)
         {
-          self.onErrorMessage?(
-            "This QR code is not allowed to unblock this profile. Physical unblock setting is on for this profile"
-          )
+          if unblockPurpose == .stop {
+            self.onErrorMessage?("This QR code is not allowed to stop this profile. Physical unblock setting is on for this profile")
+          }
+          else {
+            self.onErrorMessage?("This QR code is not allowed to pause this profile. Physical pause setting is on for this profile")
+          }
           return
         }
+        
+        // Updated to check the new unblockPurspose directly rather than isPauseActive
 
-        if isPauseActive {
+        if unblockPurpose == .stop {
           // Pause is active - user wants to fully stop the session
           DeviceActivityCenterUtil.removePauseTimerActivity(for: session.blockedProfile)
           session.endSession()
@@ -124,7 +131,7 @@ class QRPauseTimerBlockingStrategy: BlockingStrategy {
 
           self.onSessionCreation?(.paused)
         }
-
+        
       case .failure(let error):
         self.onErrorMessage?(error.localizedDescription)
       }

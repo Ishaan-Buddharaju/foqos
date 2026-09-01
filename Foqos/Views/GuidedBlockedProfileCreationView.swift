@@ -2,6 +2,11 @@ import FamilyControls
 import SwiftData
 import SwiftUI
 
+#Preview {
+    GuidedBlockedProfileCreationView()
+        .environmentObject(ThemeManager())
+}
+
 private enum GuidedProfileStep: Int, CaseIterable, Identifiable {
   case name
   case strategy

@@ -40,8 +40,15 @@ protocol BlockingStrategy {
     profile: BlockedProfiles,
     forceStart: Bool?
   ) -> (any View)?
-  func stopBlocking(context: ModelContext, session: BlockedProfileSession)
+  // Change it to use 3 parameters and an extension
+  func stopBlocking(context: ModelContext, session: BlockedProfileSession, purpose: PhysicalUnblockItem.PhysicalUnblockPurpose?)
     -> (any View)?
+}
+
+extension BlockingStrategy {
+  func stopBlocking(context: ModelContext, session: BlockedProfileSession, purpose: PhysicalUnblockItem.PhysicalUnblockPurpose) -> (any View)? {
+    self.stopBlocking(context: context, session: session, purpose: nil)
+  }
 }
 
 enum BlockingStrategyPickerCategory: String, CaseIterable {

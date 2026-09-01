@@ -10,7 +10,9 @@ class ManualBlockingStrategy: BlockingStrategy {
   var color: Color = .blue
   var pickerCategory: BlockingStrategyPickerCategory = .easyToStart
 
+
   var startsManually: Bool = true
+  
 
   var onSessionCreation: ((SessionStatus) -> Void)?
   var onErrorMessage: ((String) -> Void)?

@@ -6,6 +6,7 @@ struct PhysicalUnblockItem: Codable, Hashable, Identifiable, Sendable {
   var id: UUID
   var name: String
   var type: PhysicalUnblockType
+  var purposes: [PhysicalUnblockPurpose]
   var codeValue: String
 
   enum PhysicalUnblockType: String, Codable, CaseIterable, Sendable {
@@ -19,16 +20,24 @@ struct PhysicalUnblockItem: Codable, Hashable, Identifiable, Sendable {
       }
     }
   }
+  
+  enum PhysicalUnblockPurpose: String, Codable, CaseIterable, Sendable {
+    case stop
+    case pause
+  }
+
 
   init(
     id: UUID = UUID(),
     name: String,
     type: PhysicalUnblockType,
+  purposes: [PhysicalUnblockPurpose],
     codeValue: String
   ) {
     self.id = id
     self.name = name
     self.type = type
+    self.purposes = purposes
     self.codeValue = codeValue
   }
 
@@ -48,6 +57,7 @@ struct PhysicalUnblockItem: Codable, Hashable, Identifiable, Sendable {
         PhysicalUnblockItem(
           name: "NFC Tag",
           type: .nfc,
+          purposes: PhysicalUnblockPurpose.allCases,
           codeValue: legacyNFCTagId
         )
       )
@@ -58,6 +68,7 @@ struct PhysicalUnblockItem: Codable, Hashable, Identifiable, Sendable {
         PhysicalUnblockItem(
           name: "QR Code",
           type: .qrCode,
+          purposes: PhysicalUnblockPurpose.allCases,
           codeValue: legacyQRCodeId
         )
       )
@@ -79,6 +90,7 @@ struct PhysicalUnblockItem: Codable, Hashable, Identifiable, Sendable {
         id: item.id,
         name: trimmedName.isEmpty ? item.type.displayName : trimmedName,
         type: item.type,
+        purposes: item.purposes,
         codeValue: normalizedCodeValue
       )
     }

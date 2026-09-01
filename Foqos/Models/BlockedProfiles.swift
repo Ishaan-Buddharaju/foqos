@@ -19,6 +19,7 @@ class BlockedProfiles {
   var enableLiveActivity: Bool = false
   var reminderTimeInSeconds: UInt32?
   var enableBreaks: Bool = false
+  var enableSeparatePhysicalUnblocks: Bool = false
   var breakTimeInMinutes: Int = 15
   var allowMultipleBreaks: Bool = false
   var enableStrictMode: Bool = false
@@ -80,21 +81,24 @@ class BlockedProfiles {
   ///   - codeValue: The NFC tag ID or QR code value to check
   ///   - type: The type of code (NFC or QR)
   /// - Returns: True if the code is in the allowed list, false otherwise
-  func canUnblock(withCode codeValue: String, type: PhysicalUnblockItem.PhysicalUnblockType) -> Bool
+  ///
+  
+  func canUnblock(withCode codeValue: String, type: PhysicalUnblockItem.PhysicalUnblockType,
+                  purpose: PhysicalUnblockItem.PhysicalUnblockPurpose = .stop) -> Bool
   {
-    guard let items = physicalUnblockItems else { return false }
+    // Choose the correct items to check unblocks based on the purpose
+    guard let items = physicalUnblockItems?.filter({ $0.purposes.contains(purpose) }) else { return false }
+
     let normalizedCodeValue = PhysicalUnblockItem.normalizedCodeValue(codeValue, type: type)
 
-    return items.contains {
-      let itemCodeValue = PhysicalUnblockItem.normalizedCodeValue($0.codeValue, type: $0.type)
-
-      return $0.type == type
-        && itemCodeValue == normalizedCodeValue
+    return items.contains { item in
+      let itemCodeValue = PhysicalUnblockItem.normalizedCodeValue(item.codeValue, type: item.type)
+      return item.type == type && itemCodeValue == normalizedCodeValue
     }
   }
 
-  func hasPhysicalUnblockItem(ofType type: PhysicalUnblockItem.PhysicalUnblockType) -> Bool {
-    guard let items = physicalUnblockItems else { return false }
+  func hasPhysicalUnblockItem(ofType type: PhysicalUnblockItem.PhysicalUnblockType, purpose: PhysicalUnblockItem.PhysicalUnblockPurpose) -> Bool {
+    guard let items = physicalUnblockItems?.filter({ $0.purposes.contains(purpose) }) else { return false }
     return items.contains { $0.type == type }
   }
 
