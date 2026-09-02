@@ -47,7 +47,8 @@ class QRManualBlockingStrategy: BlockingStrategy {
 
   func stopBlocking(
     context: ModelContext,
-    session: BlockedProfileSession
+    session: BlockedProfileSession,
+    purpose: PhysicalUnblockItem.PhysicalUnblockPurpose? = nil
   ) -> (any View)? {
     return LabeledCodeScannerView(
       heading: "Scan to stop",

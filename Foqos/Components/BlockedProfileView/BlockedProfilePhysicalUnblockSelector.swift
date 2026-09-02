@@ -267,6 +267,7 @@ struct BlockedProfilePhysicalUnblockSelector: View {
       PhysicalUnblockItem(
         name: defaultName(for: type),
         type: type,
+        purposes: PhysicalUnblockItem.PhysicalUnblockPurpose.allCases,
         codeValue: normalizedCodeValue
       )
     )
@@ -311,10 +312,13 @@ struct BlockedProfilePhysicalUnblockSelector: View {
 
 #Preview {
   @Previewable @State var physicalUnblockItems: [PhysicalUnblockItem] = [
-    PhysicalUnblockItem(name: "Tag 1", type: .nfc, codeValue: "04AABBCC11223344"),
-    PhysicalUnblockItem(name: "Tag 2", type: .nfc, codeValue: "https://foqos.app/profile/tag-2"),
     PhysicalUnblockItem(
-      name: "Office QR", type: .qrCode, codeValue: "https://foqos.app/profile/office"),
+      name: "Tag 1", type: .nfc, purposes: [.stop], codeValue: "04AABBCC11223344"),
+    PhysicalUnblockItem(
+      name: "Tag 2", type: .nfc, purposes: [.pause], codeValue: "https://foqos.app/profile/tag-2"),
+    PhysicalUnblockItem(
+      name: "Office QR", type: .qrCode, purposes: PhysicalUnblockItem.PhysicalUnblockPurpose.allCases,
+      codeValue: "https://foqos.app/profile/office"),
   ]
 
   NavigationStack {

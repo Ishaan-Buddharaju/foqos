@@ -109,7 +109,10 @@ struct ProfileDebugCard: View {
     enableStrictMode: true,
     order: 1,
     physicalUnblockItems: [
-      PhysicalUnblockItem(name: "Desk Tag", type: .nfc, codeValue: "ABC123DEF456")
+      PhysicalUnblockItem(
+        name: "Desk Tag", type: .nfc,
+        purposes: PhysicalUnblockItem.PhysicalUnblockPurpose.allCases,
+        codeValue: "ABC123DEF456")
     ]
   )
 

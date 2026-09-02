@@ -3,13 +3,22 @@ import SwiftUI
 
 class NFCManualBlockingStrategy: BlockingStrategy {
   static var id: String = "NFCManualBlockingStrategy"
-
+  
   var name: String = "NFC + Manual"
   var description: String =
     "Start in the app. To stop, scan any NFC tag. Use Strict Unlocks if you want only selected tags to work."
   var iconAssetName: String = "Manual+NFCSticker"
   var color: Color = .yellow
   var pickerCategory: BlockingStrategyPickerCategory = .easyToStart
+
+  var usesQRCode: Bool = false
+  var hasTimer: Bool = false
+  var hasPauseMode: Bool = false
+  var requiresSameCodeToStop: Bool = false
+  var allowsTimedBreaks: Bool = true
+  var supportsAllowMode: Bool = true
+  var isBeta: Bool = false
+  var startViewPresentationDetents: Set<PresentationDetent> = [.medium, .large]
 
   var usesNFC: Bool = true
   var startsManually: Bool = true
@@ -42,13 +51,13 @@ class NFCManualBlockingStrategy: BlockingStrategy {
       )
 
     self.onSessionCreation?(.started(activeSession))
-
     return nil
   }
 
   func stopBlocking(
     context: ModelContext,
-    session: BlockedProfileSession
+    session: BlockedProfileSession,
+    purpose: PhysicalUnblockItem.PhysicalUnblockPurpose? = nil
   ) -> (any View)? {
     nfcScanner.onTagScanned = { tag in
       let tag = tag.url ?? tag.id

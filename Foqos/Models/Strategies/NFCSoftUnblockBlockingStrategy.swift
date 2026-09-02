@@ -89,7 +89,8 @@ final class NFCSoftUnblockBlockingStrategy: BlockingStrategy {
 
   func stopBlocking(
     context: ModelContext,
-    session: BlockedProfileSession
+    session: BlockedProfileSession,
+    purpose: PhysicalUnblockItem.PhysicalUnblockPurpose? = nil
   ) -> (any View)? {
     nfcScanner.onTagScanned = { tag in
       let code = tag.url ?? tag.id

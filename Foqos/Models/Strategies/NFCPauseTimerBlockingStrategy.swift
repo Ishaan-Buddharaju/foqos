@@ -84,39 +84,52 @@ class NFCPauseTimerBlockingStrategy: BlockingStrategy {
 
   func stopBlocking(
     context: ModelContext,
-    session: BlockedProfileSession
+    session: BlockedProfileSession,
+    purpose: PhysicalUnblockItem.PhysicalUnblockPurpose? = nil
   ) -> (any View)? {
     let isPauseActive = session.isPauseActive
+
+    // A caller with explicit intent wins; otherwise the session state decides, so an
+    // un-paused session pauses first and a paused one stops.
+    let unblockPurpose: PhysicalUnblockItem.PhysicalUnblockPurpose =
+      purpose ?? (isPauseActive ? .stop : .pause)
 
     nfcScanner.onTagScanned = { tag in
       let tagId = tag.url ?? tag.id
 
       // Check strict mode - if physical unblock is set, it must match
-      if session.blockedProfile.hasPhysicalUnblockItem(ofType: .nfc)
-        && !session.blockedProfile.canUnblock(withCode: tagId, type: .nfc)
+      if session.blockedProfile.hasPhysicalUnblockItem(ofType: .nfc, purpose: unblockPurpose)
+        && !session.blockedProfile.canUnblock(
+          withCode: tagId, type: .nfc, purpose: unblockPurpose)
       {
-        self.onErrorMessage?(
-          "This NFC tag is not allowed to unblock this profile. Physical unblock setting is on for this profile"
-        )
+        if unblockPurpose == .stop {
+          self.onErrorMessage?(
+            "This NFC tag is not allowed to stop this profile. Physical unblock setting is on for this profile"
+          )
+        } else {
+          self.onErrorMessage?(
+            "This NFC tag is not allowed to pause this profile. Physical pause setting is on for this profile"
+          )
+        }
         return
       }
 
-      if isPauseActive {
-        // Pause is active - user wants to fully stop the session
+      if unblockPurpose == .stop {
+        // Fully stop the session
         DeviceActivityCenterUtil.removePauseTimerActivity(for: session.blockedProfile)
         session.endSession()
         try? context.save()
         self.appBlocker.deactivateRestrictions()
         self.onSessionCreation?(.ended(session.blockedProfile))
       } else {
-        // No pause active - initiate pause mode
+        // Initiate pause mode
         DeviceActivityCenterUtil.startPauseTimerActivity(for: session.blockedProfile)
 
         self.onSessionCreation?(.paused)
       }
     }
 
-    if isPauseActive {
+    if unblockPurpose == .stop {
       nfcScanner.scan(profileName: session.blockedProfile.name)
     } else {
       nfcScanner.scan(profileName: "\(session.blockedProfile.name) - Pause")

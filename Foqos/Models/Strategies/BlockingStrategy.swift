@@ -47,8 +47,11 @@ protocol BlockingStrategy {
 }
 
 extension BlockingStrategy {
-  func stopBlocking(context: ModelContext, session: BlockedProfileSession, purpose: PhysicalUnblockItem.PhysicalUnblockPurpose) -> (any View)? {
-    self.stopBlocking(context: context, session: session, purpose: nil)
+  func stopBlocking(
+    context: ModelContext,
+    session: BlockedProfileSession
+  ) -> (any View)? {
+    return stopBlocking(context: context, session: session, purpose: nil)
   }
 }
 

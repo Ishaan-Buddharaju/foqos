@@ -88,7 +88,8 @@ final class QRSoftUnblockBlockingStrategy: BlockingStrategy {
 
   func stopBlocking(
     context: ModelContext,
-    session: BlockedProfileSession
+    session: BlockedProfileSession,
+    purpose: PhysicalUnblockItem.PhysicalUnblockPurpose? = nil
   ) -> (any View)? {
     LabeledCodeScannerView(
       heading: "Scan to stop",

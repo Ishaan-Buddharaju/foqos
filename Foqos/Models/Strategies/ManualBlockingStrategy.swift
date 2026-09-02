@@ -47,8 +47,10 @@ class ManualBlockingStrategy: BlockingStrategy {
 
   func stopBlocking(
     context: ModelContext,
-    session: BlockedProfileSession
+    session: BlockedProfileSession,
+    purpose: PhysicalUnblockItem.PhysicalUnblockPurpose? = nil
   ) -> (any View)? {
+    assert(purpose == nil)
     session.endSession()
     try? context.save()
     self.appBlocker.deactivateRestrictions()

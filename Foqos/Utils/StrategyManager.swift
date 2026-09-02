@@ -101,7 +101,7 @@ class StrategyManager: ObservableObject {
     WidgetCenter.shared.reloadTimelines(ofKind: "ProfileControlWidget")
   }
 
-  func toggleBlocking(context: ModelContext, activeProfile: BlockedProfiles?) {
+  func toggleBlocking(context: ModelContext, activeProfile: BlockedProfiles) {
     if isBlocking {
       stopBlocking(context: context)
     } else {
@@ -747,6 +747,10 @@ class StrategyManager: ObservableObject {
 
     if let strategyId = session.blockedProfile.blockingStrategyId {
       let strategy = getStrategy(id: strategyId, context: context)
+
+      // No purpose is supplied here: the session screen has a single action button, so intent
+      // is unambiguous from session state and each strategy derives it. A caller that offers
+      // separate Pause and Stop actions passes one explicitly.
       let view = strategy.stopBlocking(context: context, session: session)
 
       if let customView = view {
@@ -858,3 +862,4 @@ class StrategyManager: ObservableObject {
     print("Blocking state reset complete")
   }
 }
+

@@ -19,7 +19,7 @@ class BlockedProfiles {
   var enableLiveActivity: Bool = false
   var reminderTimeInSeconds: UInt32?
   var enableBreaks: Bool = false
-  var enableSeparatePhysicalUnblocks: Bool = false
+  var hasSeparatePhysicalUnblocks: Bool = false
   var breakTimeInMinutes: Int = 15
   var allowMultipleBreaks: Bool = false
   var enableStrictMode: Bool = false
@@ -76,18 +76,36 @@ class BlockedProfiles {
 
   // MARK: - Physical Unblock Helpers
 
+  /// The items that govern a given purpose, or nil when no allow-list applies to it.
+  ///
+  /// Both `canUnblock` and `hasPhysicalUnblockItem` resolve through here so they can never
+  /// disagree about whether a list applies - a disagreement would report "strict mode is on"
+  /// while rejecting every code, locking the user out of their own session.
+  private func governingItems(
+    for purpose: PhysicalUnblockItem.PhysicalUnblockPurpose
+  ) -> [PhysicalUnblockItem]? {
+    guard let items = physicalUnblockItems, !items.isEmpty else { return nil }
+
+    // Without separation every code is valid for every purpose
+    guard hasSeparatePhysicalUnblocks else { return items }
+
+    let scopedItems = items.filter { $0.purposes.contains(purpose) }
+    return scopedItems.isEmpty ? nil : scopedItems
+  }
+
   /// Checks if a specific NFC tag or QR code can unblock this profile
   /// - Parameters:
   ///   - codeValue: The NFC tag ID or QR code value to check
   ///   - type: The type of code (NFC or QR)
+  ///   - purpose: What the code is being presented for. Callers with no opinion pass nil,
+  ///     which resolves to `.stop` so strategies without a pause concept keep working.
   /// - Returns: True if the code is in the allowed list, false otherwise
-  ///
-  
-  func canUnblock(withCode codeValue: String, type: PhysicalUnblockItem.PhysicalUnblockType,
-                  purpose: PhysicalUnblockItem.PhysicalUnblockPurpose = .stop) -> Bool
-  {
-    // Choose the correct items to check unblocks based on the purpose
-    guard let items = physicalUnblockItems?.filter({ $0.purposes.contains(purpose) }) else { return false }
+  func canUnblock(
+    withCode codeValue: String,
+    type: PhysicalUnblockItem.PhysicalUnblockType,
+    purpose: PhysicalUnblockItem.PhysicalUnblockPurpose? = nil
+  ) -> Bool {
+    guard let items = governingItems(for: purpose ?? .stop) else { return false }
 
     let normalizedCodeValue = PhysicalUnblockItem.normalizedCodeValue(codeValue, type: type)
 
@@ -97,8 +115,11 @@ class BlockedProfiles {
     }
   }
 
-  func hasPhysicalUnblockItem(ofType type: PhysicalUnblockItem.PhysicalUnblockType, purpose: PhysicalUnblockItem.PhysicalUnblockPurpose) -> Bool {
-    guard let items = physicalUnblockItems?.filter({ $0.purposes.contains(purpose) }) else { return false }
+  func hasPhysicalUnblockItem(
+    ofType type: PhysicalUnblockItem.PhysicalUnblockType,
+    purpose: PhysicalUnblockItem.PhysicalUnblockPurpose? = nil
+  ) -> Bool {
+    guard let items = governingItems(for: purpose ?? .stop) else { return false }
     return items.contains { $0.type == type }
   }
 
@@ -575,3 +596,4 @@ class BlockedProfiles {
     try updateProfile(profile, in: context, domains: newDomains)
   }
 }
+
