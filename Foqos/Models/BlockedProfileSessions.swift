@@ -31,6 +31,13 @@ class BlockedProfileSession {
       return false
     }
 
+    // Breaks and pauses are mutually exclusive: both unblock the profile on their own timer,
+    // and whichever expires first re-activates restrictions without consulting the other.
+    // Pausing during a break is already refused in pauseActiveSessionFromBackground.
+    if isPauseActive {
+      return false
+    }
+
     if blockedProfile.allowMultipleBreaks {
       return remainingBreakAllowance() > 0
     }

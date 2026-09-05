@@ -521,6 +521,11 @@ class StrategyManager: ObservableObject {
       return
     }
 
+    guard !session.isPauseActive else {
+      print("Breaks are not available while a pause is active")
+      return
+    }
+
     if !session.isBreakAvailable {
       print("Breaks is not availble")
       return

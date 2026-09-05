@@ -12,9 +12,9 @@ private enum GuidedProfileStep: Int, CaseIterable, Identifiable {
   case strategy
   case apps
   case domains
-  case strictUnlocks
   case schedule
   case breaks
+  case strictUnlocks
   case strictSafeguards
   case sessionSafeguards
   case notifications
@@ -477,6 +477,8 @@ private struct GuidedProfileReviewContent: View {
       reviewDivider
       reviewRow(title: "Breaks", value: breaksSummary)
       reviewDivider
+      reviewRow(title: "Physical Unlocks", value: physicalUnlocksSummary)
+      reviewDivider
       reviewRow(title: "Safeguards", value: safeguardsSummary)
       reviewDivider
       reviewRow(title: "Notifications", value: notificationsSummary)
@@ -517,6 +519,26 @@ private struct GuidedProfileReviewContent: View {
 
   private var scheduleSummary: String {
     return draft.schedule.days.isEmpty ? "No schedule set" : draft.schedule.summaryText
+  }
+
+  private var physicalUnlocksSummary: String {
+    let items = draft.physicalUnblockItems
+
+    guard !items.isEmpty else {
+      return "None"
+    }
+
+    let countSummary = items.count == 1 ? "1 code" : "\(items.count) codes"
+
+    guard draft.selectedStrategy?.hasPauseMode == true,
+      items.contains(where: {
+        $0.purposes.count < PhysicalUnblockItem.PhysicalUnblockPurpose.allCases.count
+      })
+    else {
+      return countSummary
+    }
+
+    return "\(countSummary), split by purpose"
   }
 
   private var breaksSummary: String {

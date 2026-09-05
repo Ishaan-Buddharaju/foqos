@@ -263,7 +263,10 @@ struct BlockedProfileStrictUnlocksFields: View {
   var body: some View {
     BlockedProfilePhysicalUnblockSelector(
       physicalUnblockItems: $draft.physicalUnblockItems,
-      disabled: disabled
+      disabled: disabled,
+      // Only the pause strategies check purposes; elsewhere every code resolves to .stop,
+      // so offering the choice would describe behavior the backend does not implement.
+      supportsPurposes: draft.selectedStrategy?.hasPauseMode == true
     )
   }
 }

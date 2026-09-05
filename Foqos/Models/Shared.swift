@@ -31,6 +31,7 @@ enum SharedData {
     var breakTimeInMinutes: Int = 15
     var allowMultipleBreaks: Bool? = nil
     var enableStrictMode: Bool
+    var hasSeparatePhysicalUnblocks: Bool = false
     var enableBlockAppInstallation: Bool = false
     var enableAllowMode: Bool
     var enableAllowModeDomains: Bool

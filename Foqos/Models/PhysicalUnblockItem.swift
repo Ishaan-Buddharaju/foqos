@@ -6,7 +6,7 @@ struct PhysicalUnblockItem: Codable, Hashable, Identifiable, Sendable {
   var id: UUID
   var name: String
   var type: PhysicalUnblockType
-  var purposes: [PhysicalUnblockPurpose]
+  var purposes: [PhysicalUnblockPurpose] = PhysicalUnblockPurpose.allCases
   var codeValue: String
 
   enum PhysicalUnblockType: String, Codable, CaseIterable, Sendable {
@@ -20,18 +20,33 @@ struct PhysicalUnblockItem: Codable, Hashable, Identifiable, Sendable {
       }
     }
   }
-  
+
+  /// What a code may be presented for. `.stop` ends a session, `.pause` starts a pause.
   enum PhysicalUnblockPurpose: String, Codable, CaseIterable, Sendable {
     case stop
     case pause
-  }
 
+    var displayName: String {
+      switch self {
+      case .stop: return "Stopping"
+      case .pause: return "Pausing"
+      }
+    }
+
+    /// Label for a code restricted to this single purpose, shown under the code value.
+    var restrictedDisplayName: String {
+      switch self {
+      case .stop: return "Stop only"
+      case .pause: return "Pause only"
+      }
+    }
+  }
 
   init(
     id: UUID = UUID(),
     name: String,
     type: PhysicalUnblockType,
-  purposes: [PhysicalUnblockPurpose],
+    purposes: [PhysicalUnblockPurpose] = PhysicalUnblockPurpose.allCases,
     codeValue: String
   ) {
     self.id = id
@@ -39,6 +54,28 @@ struct PhysicalUnblockItem: Codable, Hashable, Identifiable, Sendable {
     self.type = type
     self.purposes = purposes
     self.codeValue = codeValue
+  }
+
+  /// Decodes tolerantly so values persisted before `purposes` existed stay readable.
+  ///
+  /// Synthesized `Codable` ignores property defaults and throws on a missing key. Both the
+  /// SwiftData blob and the app-group `ProfileSnapshot` JSON predate this field, and the
+  /// snapshot decode swallows failures with `?? [:]` - so without this every stored snapshot
+  /// would silently vanish from the widget and shield extensions on upgrade.
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+
+    id = try container.decode(UUID.self, forKey: .id)
+    name = try container.decode(String.self, forKey: .name)
+    type = try container.decode(PhysicalUnblockType.self, forKey: .type)
+    codeValue = try container.decode(String.self, forKey: .codeValue)
+
+    let decodedPurposes = try container.decodeIfPresent(
+      [PhysicalUnblockPurpose].self,
+      forKey: .purposes
+    )
+    purposes =
+      (decodedPurposes?.isEmpty ?? true) ? PhysicalUnblockPurpose.allCases : decodedPurposes!
   }
 
   static func resolvedItems(
@@ -90,7 +127,7 @@ struct PhysicalUnblockItem: Codable, Hashable, Identifiable, Sendable {
         id: item.id,
         name: trimmedName.isEmpty ? item.type.displayName : trimmedName,
         type: item.type,
-        purposes: item.purposes,
+        purposes: item.purposes.isEmpty ? PhysicalUnblockPurpose.allCases : item.purposes,
         codeValue: normalizedCodeValue
       )
     }

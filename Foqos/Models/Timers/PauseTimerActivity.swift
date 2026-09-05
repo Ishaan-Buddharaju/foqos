@@ -35,6 +35,14 @@ class PauseTimerActivity: TimerActivity {
     // End restrictions for pause, preserving strict mode if enabled
     appBlocker.deactivateRestrictionsForBreak(for: profile)
 
+    // The app records the pause itself when it is in the foreground, so intervalDidStart can
+    // arrive after the pause is already running. Overwriting the timestamp here would push the
+    // pause deadline out by the delivery latency, so only start one that is not already open.
+    if activeSession.pauseStartTime != nil && activeSession.pauseEndTime == nil {
+      log.info("Start pause timer activity for \(profileId), pause already started")
+      return
+    }
+
     // Track pause start time
     let now = Date()
 
