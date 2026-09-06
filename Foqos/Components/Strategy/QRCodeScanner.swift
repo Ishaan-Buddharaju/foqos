@@ -133,6 +133,7 @@ struct LabeledCodeScannerView: View {
               .dataMatrix,
             ],
             showViewfinder: true,
+            simulatedData: simulatedData ?? "",
             shouldVibrateOnSuccess: true,
             isTorchOn: isTorchOn,
             videoCaptureDevice: camera.device,

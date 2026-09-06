@@ -114,8 +114,6 @@ struct BlockedProfileView: View {
           disabled: isBlocking
         )
 
-        BlockedProfileStrictUnlocksSection(draft: draft, disabled: isBlocking)
-
         BlockedProfileScheduleSection(
           draft: draft,
           showingSchedulePicker: $showingSchedulePicker,
@@ -123,6 +121,8 @@ struct BlockedProfileView: View {
         )
 
         BlockedProfileBreaksSection(draft: draft, disabled: isBlocking)
+
+        BlockedProfileStrictUnlocksSection(draft: draft, disabled: isBlocking)
 
         BlockedProfileStrictSafeguardsSection(draft: draft, disabled: isBlocking)
 

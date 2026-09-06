@@ -3,12 +3,15 @@ import SwiftUI
 struct BlockedProfilePhysicalUnblockSelector: View {
   @EnvironmentObject private var themeManager: ThemeManager
 
-  @ScaledMetric(relativeTo: .body) private var columnHeaderMinHeight: CGFloat = 40
-  @ScaledMetric(relativeTo: .caption2) private var columnDescriptionMinHeight: CGFloat = 50
+  @ScaledMetric(relativeTo: .subheadline) private var itemRowVerticalPadding: CGFloat = 16
 
   @Binding var physicalUnblockItems: [PhysicalUnblockItem]
   var disabled: Bool = false
   var disabledText: String?
+
+  /// Whether the selected strategy distinguishes pausing from stopping. Only the pause-timer
+  /// strategies do, so everywhere else the purpose controls stay hidden.
+  var supportsPurposes: Bool = false
 
   @State private var showingQRCodeScanner = false
   @State private var showingRenamePrompt = false
@@ -29,8 +32,8 @@ struct BlockedProfilePhysicalUnblockSelector: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      HStack(alignment: .top, spacing: 12) {
-        physicalUnblockColumn(
+      VStack(alignment: .leading, spacing: 20) {
+        physicalUnblockSection(
           title: "NFC Tags",
           description: "Add NFC tags that can unlock this profile while a session is active.",
           systemImage: "wave.3.right.circle.fill",
@@ -41,7 +44,7 @@ struct BlockedProfilePhysicalUnblockSelector: View {
           onAdd: addNFCTag
         )
 
-        physicalUnblockColumn(
+        physicalUnblockSection(
           title: "QR/Barcode",
           description:
             "Add QR codes or barcodes that can unlock this profile while a session is active.",
@@ -95,8 +98,10 @@ struct BlockedProfilePhysicalUnblockSelector: View {
     }
   }
 
+  /// One full-width section per code type, stacked rather than sat side by side, so each row
+  /// has the width for a name, a purpose picker and a delete control on a single line.
   @ViewBuilder
-  private func physicalUnblockColumn(
+  private func physicalUnblockSection(
     title: String,
     description: String,
     systemImage: String,
@@ -106,42 +111,28 @@ struct BlockedProfilePhysicalUnblockSelector: View {
     addButtonTitle: String,
     onAdd: @escaping () -> Void
   ) -> some View {
-    VStack(spacing: 16) {
-      VStack(spacing: 10) {
-        if let assetImage = assetImage {
-          Image(assetImage)
-            .resizable()
-            .scaledToFit()
-            .frame(width: 34, height: 34)
-        } else {
-          Image(systemName: systemImage)
-            .font(.title2)
-            .foregroundColor(.gray)
+    VStack(alignment: .leading, spacing: 12) {
+      HStack(spacing: 10) {
+        typeIcon(systemImage: systemImage, assetImage: assetImage, size: 28)
+
+        Text(title)
+          .font(.subheadline)
+          .fontWeight(.medium)
+          .foregroundColor(.primary)
+
+        if !items.isEmpty {
+          Image(systemName: "checkmark.circle.fill")
+            .foregroundColor(themeManager.themeColor)
+            .font(.caption)
         }
 
-        HStack(spacing: 6) {
-          Text(title)
-            .font(.subheadline)
-            .fontWeight(.medium)
-            .foregroundColor(.primary)
-
-          if !items.isEmpty {
-            Image(systemName: "checkmark.circle.fill")
-              .foregroundColor(themeManager.themeColor)
-              .font(.caption)
-          }
-        }
+        Spacer(minLength: 0)
       }
-      .frame(minHeight: columnHeaderMinHeight)
 
-      VStack(spacing: 8) {
-        Text(description)
-          .font(.caption2)
-          .foregroundColor(.secondary)
-          .multilineTextAlignment(.center)
-          .fixedSize(horizontal: false, vertical: true)
-      }
-      .frame(minHeight: columnDescriptionMinHeight, alignment: .center)
+      Text(description)
+        .font(.caption2)
+        .foregroundColor(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
 
       VStack(spacing: 10) {
         if items.isEmpty {
@@ -155,52 +146,86 @@ struct BlockedProfilePhysicalUnblockSelector: View {
         }
       }
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.top, 12)
     .padding(.bottom, 8)
     .opacity(disabled ? 0.5 : 1)
   }
 
   @ViewBuilder
+  private func typeIcon(
+    systemImage: String,
+    assetImage: String?,
+    size: CGFloat
+  ) -> some View {
+    if let assetImage {
+      Image(assetImage)
+        .resizable()
+        .scaledToFit()
+        .frame(width: size, height: size)
+    } else {
+      Image(systemName: systemImage)
+        .font(.title3)
+        .foregroundColor(.gray)
+        .frame(width: size, height: size)
+    }
+  }
+
+  @ViewBuilder
   private func physicalUnblockItemRow(item: PhysicalUnblockItem) -> some View {
     HStack(spacing: 10) {
+      typeIcon(
+        systemImage: item.type == .nfc ? "wave.3.right.circle.fill" : "qrcode.viewfinder",
+        assetImage: item.type == .nfc ? "NFCStickerLogo" : "QRStickerLogo",
+        size: 26
+      )
+
       VStack(alignment: .leading, spacing: 2) {
-        Text(item.name)
-          .font(.subheadline)
-          .foregroundStyle(.primary)
-          .lineLimit(1)
+        HStack(spacing: 6) {
+          Text(item.name)
+            .font(.subheadline)
+            .foregroundStyle(.primary)
+            .lineLimit(1)
+
+          Button {
+            renameItemName = item.name
+            renameItemID = item.id
+            showingRenamePrompt = true
+          } label: {
+            Image(systemName: "pencil")
+              .font(.caption)
+              .foregroundStyle(themeManager.themeColor)
+          }
+          .buttonStyle(.plain)
+          .disabled(disabled)
+          .accessibilityLabel("Rename \(item.name)")
+        }
 
         Text(shortCodeValue(item.codeValue))
           .font(.caption2)
           .foregroundStyle(.secondary)
           .lineLimit(1)
       }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .layoutPriority(1)
 
-      Spacer(minLength: 8)
-
-      Menu {
-        Button {
-          renameItemName = item.name
-          renameItemID = item.id
-          showingRenamePrompt = true
-        } label: {
-          Label("Rename", systemImage: "pencil")
-        }
-
-        Button(role: .destructive) {
-          removeItem(item.id)
-        } label: {
-          Label("Delete", systemImage: "trash")
-        }
-      } label: {
-        Image(systemName: "ellipsis.circle")
-          .font(.title3)
-          .foregroundStyle(themeManager.themeColor)
+      if supportsPurposes {
+        purposePicker(for: item)
       }
+
+      Button(role: .destructive) {
+        removeItem(item.id)
+      } label: {
+        Image(systemName: "trash")
+          .font(.subheadline)
+          .foregroundStyle(.red)
+      }
+      .buttonStyle(.plain)
       .disabled(disabled)
+      .accessibilityLabel("Delete \(item.name)")
     }
     .padding(.horizontal, 14)
-    .padding(.vertical, 10)
+    .padding(.vertical, itemRowVerticalPadding)
     .frame(maxWidth: .infinity)
     .background(
       RoundedRectangle(cornerRadius: 16)
@@ -210,6 +235,36 @@ struct BlockedProfilePhysicalUnblockSelector: View {
             .stroke(Color.primary.opacity(0.2), lineWidth: 1)
         )
     )
+  }
+
+  /// Three-way purpose control. `PhysicalUnblockItem.purposes` is a list, but only three of its
+  /// combinations are reachable - an empty list matches nothing in `governingItems(for:)`, so it
+  /// is not offered here and cannot be selected into.
+  @ViewBuilder
+  private func purposePicker(for item: PhysicalUnblockItem) -> some View {
+    // The segments are written out rather than looped because `.segmented` only honours
+    // concrete `Text` and `Image` children - a computed `some View` returning a switch becomes
+    // `_ConditionalContent` and the style can render it blank.
+    //
+    // Pause and stop glyphs normally reach views through `BlockingStrategySessionAction`. This
+    // is a profile setting rather than a session action, so it has no action to read from and
+    // names the symbols directly, matching `BlockingStrategy.activeSessionAction`.
+    Picker("Used for", selection: purposeSelection(for: item)) {
+      Image(systemName: "pause.fill")
+        .accessibilityLabel(PurposeSelection.pause.title)
+        .tag(PurposeSelection.pause)
+
+      Image(systemName: "stop.fill")
+        .accessibilityLabel(PurposeSelection.stop.title)
+        .tag(PurposeSelection.stop)
+
+      Text(PurposeSelection.both.title)
+        .tag(PurposeSelection.both)
+    }
+    .pickerStyle(.segmented)
+    .labelsHidden()
+    .fixedSize()
+    .disabled(disabled)
   }
 
   @ViewBuilder
@@ -242,6 +297,11 @@ struct BlockedProfilePhysicalUnblockSelector: View {
     physicalReader.readNFCTag(
       onSuccess: { codeValue in
         addItem(codeValue: codeValue, type: .nfc)
+      },
+      onFailure: { message in
+        // Without this the default no-op closure swallows the message, so a device that cannot
+        // read NFC makes this button look broken rather than unavailable.
+        showError(message)
       }
     )
   }
@@ -296,6 +356,24 @@ struct BlockedProfilePhysicalUnblockSelector: View {
     return "\(type.displayName) \(nextIndex)"
   }
 
+
+  private func purposeSelection(
+    for item: PhysicalUnblockItem
+  ) -> Binding<PurposeSelection> {
+    Binding(
+      get: { PurposeSelection(purposes: item.purposes) },
+      set: { selection in
+        guard
+          let itemIndex = physicalUnblockItems.firstIndex(where: { $0.id == item.id })
+        else {
+          return
+        }
+
+        physicalUnblockItems[itemIndex].purposes = selection.purposes
+      }
+    )
+  }
+
   private func shortCodeValue(_ codeValue: String) -> String {
     guard codeValue.count > 28 else { return codeValue }
 
@@ -329,4 +407,39 @@ struct BlockedProfilePhysicalUnblockSelector: View {
     }
   }
   .environmentObject(ThemeManager())
+}
+
+/// The reachable purpose combinations for a physical unblock code, as one picker value.
+private enum PurposeSelection {
+  case pause
+  case stop
+  case both
+
+  /// Also supplies the VoiceOver labels for the two icon segments, so the three names stay
+  /// defined in one place.
+  var title: String {
+    switch self {
+    case .pause: return "Pause"
+    case .stop: return "Stop"
+    case .both: return "Both"
+    }
+  }
+
+  var purposes: [PhysicalUnblockItem.PhysicalUnblockPurpose] {
+    switch self {
+    case .pause: return [.pause]
+    case .stop: return [.stop]
+    case .both: return PhysicalUnblockItem.PhysicalUnblockPurpose.allCases
+    }
+  }
+
+  /// Anything that is not exactly one purpose reads as "both", so a legacy item carrying every
+  /// purpose - the decode default for codes stored before purposes existed - lands there too.
+  init(purposes: [PhysicalUnblockItem.PhysicalUnblockPurpose]) {
+    switch purposes.count {
+    case 1 where purposes.contains(.pause): self = .pause
+    case 1 where purposes.contains(.stop): self = .stop
+    default: self = .both
+    }
+  }
 }

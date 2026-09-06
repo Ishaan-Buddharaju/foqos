@@ -139,6 +139,7 @@ class BlockedProfiles {
     breakTimeInMinutes: Int = 15,
     allowMultipleBreaks: Bool = false,
     enableStrictMode: Bool = false,
+    hasSeparatePhysicalUnblocks: Bool = false,
     enableBlockAppInstallation: Bool = false,
     enableAllowMode: Bool = false,
     enableAllowModeDomains: Bool = false,
@@ -170,6 +171,7 @@ class BlockedProfiles {
     self.breakTimeInMinutes = breakTimeInMinutes
     self.allowMultipleBreaks = allowMultipleBreaks
     self.enableStrictMode = enableStrictMode
+    self.hasSeparatePhysicalUnblocks = hasSeparatePhysicalUnblocks
     self.enableBlockAppInstallation = enableBlockAppInstallation
     self.enableAllowMode = enableAllowMode
     self.enableAllowModeDomains = enableMacSync ? false : enableAllowModeDomains
@@ -242,6 +244,7 @@ class BlockedProfiles {
     breakTimeInMinutes: Int? = nil,
     allowMultipleBreaks: Bool? = nil,
     enableStrictMode: Bool? = nil,
+    hasSeparatePhysicalUnblocks: Bool? = nil,
     enableBlockAppInstallation: Bool? = nil,
     enableAllowMode: Bool? = nil,
     enableAllowModeDomains: Bool? = nil,
@@ -308,6 +311,10 @@ class BlockedProfiles {
 
     if let newEnableStrictMode = enableStrictMode {
       profile.enableStrictMode = newEnableStrictMode
+    }
+
+    if let newHasSeparatePhysicalUnblocks = hasSeparatePhysicalUnblocks {
+      profile.hasSeparatePhysicalUnblocks = newHasSeparatePhysicalUnblocks
     }
 
     if let newEnableBlockAppInstallation = enableBlockAppInstallation {
@@ -423,6 +430,7 @@ class BlockedProfiles {
       breakTimeInMinutes: profile.breakTimeInMinutes,
       allowMultipleBreaks: profile.allowMultipleBreaks,
       enableStrictMode: profile.enableStrictMode,
+      hasSeparatePhysicalUnblocks: profile.hasSeparatePhysicalUnblocks,
       enableBlockAppInstallation: profile.enableBlockAppInstallation,
       enableAllowMode: profile.enableAllowMode,
       enableAllowModeDomains: profile.enableAllowModeDomains,
@@ -483,6 +491,7 @@ class BlockedProfiles {
     breakTimeInMinutes: Int = 15,
     allowMultipleBreaks: Bool = false,
     enableStrictMode: Bool = false,
+    hasSeparatePhysicalUnblocks: Bool = false,
     enableBlockAppInstallation: Bool = false,
     enableAllowMode: Bool = false,
     enableAllowModeDomains: Bool = false,
@@ -510,6 +519,7 @@ class BlockedProfiles {
       breakTimeInMinutes: breakTimeInMinutes,
       allowMultipleBreaks: allowMultipleBreaks,
       enableStrictMode: enableStrictMode,
+      hasSeparatePhysicalUnblocks: hasSeparatePhysicalUnblocks,
       enableBlockAppInstallation: enableBlockAppInstallation,
       enableAllowMode: enableAllowMode,
       enableAllowModeDomains: enableAllowModeDomains,
@@ -554,6 +564,7 @@ class BlockedProfiles {
       breakTimeInMinutes: source.breakTimeInMinutes,
       allowMultipleBreaks: source.allowMultipleBreaks,
       enableStrictMode: source.enableStrictMode,
+      hasSeparatePhysicalUnblocks: source.hasSeparatePhysicalUnblocks,
       enableBlockAppInstallation: source.enableBlockAppInstallation,
       enableAllowMode: source.enableAllowMode,
       enableAllowModeDomains: source.enableAllowModeDomains,

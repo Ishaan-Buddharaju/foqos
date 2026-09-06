@@ -122,7 +122,18 @@ class NFCPauseTimerBlockingStrategy: BlockingStrategy {
         self.appBlocker.deactivateRestrictions()
         self.onSessionCreation?(.ended(session.blockedProfile))
       } else {
-        // Initiate pause mode
+        // Initiate pause mode.
+        //
+        // The pause is recorded here rather than waiting for PauseTimerActivity.start to run
+        // in the monitor extension: startMonitoring only registers the schedule, and
+        // intervalDidStart is delivered asynchronously, so the session would still report
+        // isPauseActive == false when the UI reloads immediately after this callback. The
+        // extension remains the backstop for when the app is not in the foreground.
+        session.startPause()
+        self.appBlocker.deactivateRestrictionsForBreak(
+          for: BlockedProfiles.getSnapshot(for: session.blockedProfile))
+        try? context.save()
+
         DeviceActivityCenterUtil.startPauseTimerActivity(for: session.blockedProfile)
 
         self.onSessionCreation?(.paused)

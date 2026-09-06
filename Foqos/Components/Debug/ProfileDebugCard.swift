@@ -62,9 +62,16 @@ struct ProfileDebugCard: View {
         let physicalUnblockItems = profile.physicalUnblockItems ?? []
 
         DebugRow(label: "Physical Unlock Count", value: "\(physicalUnblockItems.count)")
+        DebugRow(
+          label: "Separate Pause/Stop Unlocks",
+          value: "\(profile.hasSeparatePhysicalUnblocks)"
+        )
 
         ForEach(physicalUnblockItems) { item in
-          DebugRow(label: item.type.displayName, value: item.name)
+          DebugRow(
+            label: item.type.displayName,
+            value: "\(item.name) — \(item.purposes.map(\.rawValue).joined(separator: ", "))"
+          )
         }
       }
 

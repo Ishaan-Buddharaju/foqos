@@ -219,9 +219,12 @@ struct DebugView: View {
 
         if let physicalUnblockItems = profile.physicalUnblockItems, !physicalUnblockItems.isEmpty {
           markdown += "- **Physical Unlock Items:** \(physicalUnblockItems.count)\n"
+          markdown +=
+            "- **Separate Pause/Stop Unlocks:** \(profile.hasSeparatePhysicalUnblocks ? "Yes" : "No")\n"
 
           for item in physicalUnblockItems {
-            markdown += "  - \(item.type.displayName): \(item.name)\n"
+            let purposes = item.purposes.map(\.rawValue).joined(separator: ", ")
+            markdown += "  - \(item.type.displayName): \(item.name) [\(purposes)]\n"
           }
         }
 

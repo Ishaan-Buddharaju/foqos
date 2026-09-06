@@ -114,6 +114,12 @@ final class BlockedProfileDraft: ObservableObject {
       enableReminder ? UInt32(reminderTimeInMinutes * 60) : nil
     let physicalUnblockItemsToSave: [PhysicalUnblockItem]? =
       physicalUnblockItems.isEmpty ? nil : physicalUnblockItems
+
+    // Separation is derived, not toggled: it is on exactly when the user has narrowed at least
+    // one code to fewer than every purpose, and turns itself off when they widen them all back.
+    let hasSeparatePhysicalUnblocksToSave = physicalUnblockItems.contains {
+      $0.purposes.count < PhysicalUnblockItem.PhysicalUnblockPurpose.allCases.count
+    }
     let enableTimedBreaksToSave = selectedStrategyAllowsTimedBreaks && enableBreaks
 
     if let existingProfile {
@@ -132,6 +138,7 @@ final class BlockedProfileDraft: ObservableObject {
         breakTimeInMinutes: breakTimeInMinutes,
         allowMultipleBreaks: enableTimedBreaksToSave && allowMultipleBreaks,
         enableStrictMode: enableStrictMode,
+        hasSeparatePhysicalUnblocks: hasSeparatePhysicalUnblocksToSave,
         enableBlockAppInstallation: enableBlockAppInstallation,
         enableAllowMode: enableAllowMode,
         enableAllowModeDomains: enableAllowModeDomain,
@@ -163,6 +170,7 @@ final class BlockedProfileDraft: ObservableObject {
       breakTimeInMinutes: breakTimeInMinutes,
       allowMultipleBreaks: enableTimedBreaksToSave && allowMultipleBreaks,
       enableStrictMode: enableStrictMode,
+      hasSeparatePhysicalUnblocks: hasSeparatePhysicalUnblocksToSave,
       enableBlockAppInstallation: enableBlockAppInstallation,
       enableAllowMode: enableAllowMode,
       enableAllowModeDomains: enableAllowModeDomain,
